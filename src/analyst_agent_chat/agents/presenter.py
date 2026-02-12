@@ -5,26 +5,31 @@ import json
 
 class Presenter:
     def run(self, memory: AgentMemory) -> AgentMemory:
-        analysis = memory.analysis_notes[-1] if memory.analysis_notes else {}
-        review = memory.review_notes[-1] if memory.review_notes else {}
+
+        if not memory.analysis_notes:
+            memory.final_output = "No analysis available."
+            return memory
+
+        analysis = memory.analysis_notes[-1]
 
         summary_prompt = f"""
             You are a presentation assistant.
 
-            Summarize the following structured analysis and review into a concise, 
-            clear executive summary under 200 words.
+            Convert the following structured analysis into a concise,
+            clear answer suitable for a chatbot response.
+
+            Do NOT mention reviewer feedback.
+            Do NOT mention confidence score.
+            Do NOT mention internal system steps.
+
+            Keep it:
+            - Clear
+            - Direct
+            - Helpful
+            - Under 200 words
 
             Analysis:
             {json.dumps(analysis, indent=2)}
-
-            Review:
-            {json.dumps(review, indent=2)}
-
-            Keep it:
-            - Short
-            - Clear
-            - Actionable
-            - Non-technical
 
             Return plain text only.
         """

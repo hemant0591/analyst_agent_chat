@@ -105,7 +105,7 @@ class Coordinator:
 
             # -------- Check Final Confidence --------
             if score >= CONFIDENCE_THRESHOLD:
-                print(f"Final confidence: {score}")
+                #print(f"Final confidence: {score}")
                 memory = presenter.run(memory)
                 return memory
 

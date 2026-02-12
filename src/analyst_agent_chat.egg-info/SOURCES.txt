@@ -18,3 +18,4 @@ src/analyst_agent_chat/agents/analyst.py
 src/analyst_agent_chat/agents/presenter.py
 src/analyst_agent_chat/agents/researcher.py
 src/analyst_agent_chat/agents/reviewer.py
+src/analyst_agent_chat/agents/router.py

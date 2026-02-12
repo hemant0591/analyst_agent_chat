@@ -16,21 +16,23 @@ def extract_file_path(step: str) -> str | None:
     return None
 
 
-def llm_reason(prompt: str, context: list[str]) -> str:
+def llm_reason(prompt: str, context: list[dict]) -> str:
     """
-    Use the LLM to reason about a single step.
+    Use the LLM to reason with conversation history.
     """
 
-    full_prompt = f"""
-        {prompt}
+    messages = []
 
-        Previous reasoning context:
-        {context}
-    """
+    # Add prior conversation history
+    if context:
+        messages.extend(context)
+
+    # Add current user message
+    messages.append({"role": "user", "content": prompt})
 
     response = client.chat.completions.create(
         model="gpt-4.1-mini",
-        messages=[{"role": "user", "content": prompt}],
+        messages=messages,
         temperature=0.3,
     )
 
