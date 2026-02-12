@@ -11,7 +11,8 @@ class ChatController:
         self.resolver = IntentResolver()
 
     def handle_message(self, user_message: str) -> str:
-        resolution = self.resolver.resolve(user_message, self.memory.messages)
+        intent_messages = self.memory.get_intent_context()
+        resolution = self.resolver.resolve(user_message, intent_messages)
 
         intent = resolution["intent"]
         resolved_task = resolution["resolved_task"]
@@ -24,7 +25,7 @@ class ChatController:
         elif intent == "lookup":
             response = self.simple_lookup(resolved_task)
         else:
-            response = llm_reason(resolved_task, self.memory.messages)
+            response = response = llm_reason(resolved_task, self.memory.get_llm_context())
 
         self.memory.add_user(user_message)
         self.memory.add_assistant(response)
