@@ -17,15 +17,18 @@ def extract_file_path(step: str) -> str | None:
 
 
 def llm_reason(prompt: str, context: list[dict]) -> str:
-    """
-    Use the LLM to reason with conversation history.
+    """"
+    Use the LLM with optional chat history context.
+    Context must be a list of chat-style message dicts.
     """
 
     messages = []
 
-    # Add prior conversation history
+    # Only include context if it looks like valid chat history
     if context:
-        messages.extend(context)
+        for msg in context:
+            if isinstance(msg, dict) and "role" in msg and "content" in msg:
+                messages.append(msg)
 
     # Add current user message
     messages.append({"role": "user", "content": prompt})
@@ -54,8 +57,6 @@ def search_web(query: str) -> str:
     """
     Perform web search and return structured results.
     """
-    from ddgs import DDGS
-
     results = []
 
     with DDGS() as ddgs:

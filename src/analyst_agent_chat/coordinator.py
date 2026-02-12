@@ -56,12 +56,12 @@ class Coordinator:
             # If confidence low → refine once
             if score < CONFIDENCE_THRESHOLD:
 
-                print(f"Low confidence ({score}). Attempting refinement...")
+                #print(f"Low confidence ({score}). Attempting refinement...")
 
                 analysis_obj = memory.analysis_notes[-1]
 
                 if isinstance(analysis_obj, dict) and "error" in analysis_obj:
-                    print("Analysis invalid. Skipping refinement and retrying full pipeline.")
+                    #print("Analysis invalid. Skipping refinement and retrying full pipeline.")
                     retries += 1
                     continue
 
@@ -109,9 +109,9 @@ class Coordinator:
                 memory = presenter.run(memory)
                 return memory
 
-            print(f"Confidence still low ({score}). Retrying full pipeline...")
+            #print(f"Confidence still low ({score}). Retrying full pipeline...")
             retries += 1
 
-        print("Max retries reached. Returning best attempt.")
+        #print("Max retries reached. Returning best attempt.")
         memory = presenter.run(memory)
         return memory
