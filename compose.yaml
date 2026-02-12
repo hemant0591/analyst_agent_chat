@@ -1,0 +1,8 @@
+services:
+  analyst-agent:
+    build: .
+    container_name: analyst-agent
+    volumes:
+      - ./config:/app/config
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}

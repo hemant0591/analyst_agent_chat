@@ -1,0 +1,2 @@
+[console_scripts]
+analyst-agent = analyst_agent.agent:run_agent

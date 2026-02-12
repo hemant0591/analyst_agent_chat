@@ -1,0 +1,3 @@
+openai>=1.0.0
+PyYAML>=6.0.1
+ddgs>=1.0.0

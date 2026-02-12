@@ -1,0 +1,18 @@
+[project]
+name = "analyst-agent-chat"
+version = "0.1.0"
+description = "A task-oriented analyst agent you can chat with"
+requires-python = ">=3.10"
+dependencies = [
+    "openai>=1.0.0",
+    "PyYAML>=6.0.1",
+    "ddgs>=1.0.0",
+]
+
+[project.scripts]
+analyst-agent-chat = "analyst_agent_chat.agent:main"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+

@@ -1,0 +1,8 @@
+Metadata-Version: 2.4
+Name: analyst-agent-chat
+Version: 0.1.0
+Summary: A task-oriented analyst agent you can chat with
+Requires-Python: >=3.10
+Requires-Dist: openai>=1.0.0
+Requires-Dist: PyYAML>=6.0.1
+Requires-Dist: ddgs>=1.0.0

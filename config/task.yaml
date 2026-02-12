@@ -1,0 +1,8 @@
+task:
+  Research the latest trends in local LLM deployment.
+  Then summarize the findings.
+
+output_format:
+  - pros
+  - cons
+  - recommendation

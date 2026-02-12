@@ -1,0 +1,2 @@
+[console_scripts]
+analyst-agent-chat = analyst_agent_chat.agent:main
