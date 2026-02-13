@@ -3,7 +3,8 @@ from analyst_agent_chat.tools import llm_reason
 import json
 
 class Reviewer:
-    def __init__(self):
+    def __init__(self, tool_regustry):
+        self.tool_registry = tool_regustry
         self.role_prompt = """
             You are a critical reviewer.
 
@@ -45,8 +46,8 @@ class Reviewer:
             Return only valid JSON.
         """
 
-
-        critique = llm_reason(review_prompt, memory.analysis_notes)
+        reasoning_tool = self.tool_registry.get("llm_reason")
+        critique = reasoning_tool.execute(review_prompt, memory.analysis_notes)
 
         try:
             parsed = json.loads(critique)

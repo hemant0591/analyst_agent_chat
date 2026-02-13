@@ -4,6 +4,9 @@ import json
 
 
 class Presenter:
+    def __init__(self, tool_registry):
+        self.tool_registry = tool_registry
+
     def run(self, memory: AgentMemory) -> AgentMemory:
 
         if not memory.analysis_notes:
@@ -33,8 +36,8 @@ class Presenter:
 
             Return plain text only.
         """
-
-        summary = llm_reason(summary_prompt, [])
+        reasoning_tool = self.tool_registry.get("llm_reason")
+        summary = reasoning_tool.execute(summary_prompt, [])
 
         memory.final_output = summary
 

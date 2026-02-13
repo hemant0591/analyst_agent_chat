@@ -19,3 +19,5 @@ src/analyst_agent_chat/agents/intent_resolver.py
 src/analyst_agent_chat/agents/presenter.py
 src/analyst_agent_chat/agents/researcher.py
 src/analyst_agent_chat/agents/reviewer.py
+src/analyst_agent_chat/core/tool.py
+src/analyst_agent_chat/core/tool_registry.py

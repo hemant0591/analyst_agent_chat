@@ -4,7 +4,8 @@ from analyst_agent_chat.memory import AgentMemory
 import json
 
 class Analyst:
-    def __init__(self):
+    def __init__(self, tool_registry):
+        self.tool_registry = tool_registry
         self.role_prompt = """
             You are an Analyst.
 
@@ -44,8 +45,8 @@ class Analyst:
 
             Do not include any explanation outside JSON.
             """
-        
-        result = llm_reason(prompt, [])
+        reasoning_tool = self.tool_registry.get("llm_reason")
+        result = reasoning_tool.execute(prompt, [])
 
         try:
             parsed = json.loads(result)
@@ -68,7 +69,7 @@ class Analyst:
                 {result}
             """
 
-            repaired = llm_reason(repair_prompt, [])
+            repaired = reasoning_tool.execute(repair_prompt, [])
             try:
                 parsed = json.loads(repaired)
                 memory.add_analysis(parsed)

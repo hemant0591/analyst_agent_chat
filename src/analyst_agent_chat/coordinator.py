@@ -10,6 +10,9 @@ CONFIDENCE_THRESHOLD = 8
 
 
 class Coordinator:
+    def __init__(self, tool_registry):
+        self.tool_registry = tool_registry
+        
     def run(self, task: str):
         retries = 0
         original_task = task
@@ -36,10 +39,10 @@ class Coordinator:
                 task = original_task
 
             # -------- Run Core Pipeline --------
-            researcher = Researcher()
-            analyst = Analyst()
-            reviewer = Reviewer()
-            presenter = Presenter()
+            researcher = Researcher(self.tool_registry)
+            analyst = Analyst(self.tool_registry)
+            reviewer = Reviewer(self.tool_registry)
+            presenter = Presenter(self.tool_registry)
 
             memory = researcher.run(task)
             memory = analyst.run(memory)
@@ -84,8 +87,8 @@ class Coordinator:
                         "recommendation": "..."
                     }}
                 """
-
-                improved = llm_reason(refinement_prompt, [])
+                reasoning_tool = self.tool_registry.get("llm_reason")
+                improved = reasoning_tool.execute(refinement_prompt, [])
                 
                 try:
                     parsed = json.loads(improved)

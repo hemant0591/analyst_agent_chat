@@ -1,9 +1,9 @@
 from analyst_agent_chat.planner import create_plan
-from analyst_agent_chat.tools import execute_step
 from analyst_agent_chat.memory import AgentMemory
 
 class Researcher:
-    def __init__(self):
+    def __init__(self, tool_registry):
+        self.tool_registry = tool_registry
         self.role_prompt = """
             You are a Research Specialist.
 
@@ -19,7 +19,8 @@ class Researcher:
         observations = []
 
         for step in plan:
-            result = execute_step(step, observations)
+            tool = self.tool_registry.get(step["action"])
+            result = tool.execute(step["input"], observations)
             memory.add_research(result)
 
         return memory

@@ -1,5 +1,6 @@
 import os
 from openai import OpenAI
+import json
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -9,8 +10,15 @@ def create_plan(task: str, system_prompt: str | None = None) -> list[str]:
     """
 
     base_prompt = f"""
-        Break the following task into executable steps.
-        Use SEARCH:, READ_FILE:, CALCULATE: tags when appropriate.
+        Break task into steps.
+
+        Return a JSON array of objects with this structure:
+        {{
+            "action": "search_web" | "read_file" | "calculate" | "llm_reason",
+            "input": "..."
+        }}
+        Only return valid JSON.
+        No explanation.
     """
 
     if system_prompt:
@@ -26,12 +34,7 @@ def create_plan(task: str, system_prompt: str | None = None) -> list[str]:
 
     text = response.choices[0].message.content.strip()
 
-    # Parse numbered list safely
-    steps = []
-    for line in text.splitlines():
-        line = line.strip()
-        if line and len(line) > 1: #and line[0].isdigit()
-            steps.append(line) #line.split(".", 1)[1].strip()
+    steps = json.loads(text)
 
     if not steps:
         raise ValueError("Planner failed to produce steps")

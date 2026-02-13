@@ -53,7 +53,7 @@ def calculate(expression: str) -> str:
         return f"Calculation error: {e}"
 
 
-def search_web(query: str) -> str:
+def search_web(query: str, context=None) -> str:
     """
     Perform web search and return structured results.
     """
@@ -79,7 +79,7 @@ def search_web(query: str) -> str:
 
 
 
-def read_file(path: str) -> str:
+def read_file(path: str, context=None) -> str:
     """
     Read a file and return its contents
     """
@@ -93,21 +93,3 @@ def read_file(path: str) -> str:
     except Exception as e:
         return f"Could not open file: {e}"
 
-
-
-def execute_step(step: str, observations: list[str]) -> str:
-    step = step.strip()
-
-    if 'SEARCH' in step:
-        query = step.replace("SEARCH:", "").strip()
-        return search_web(query)
-
-    if 'READ_FILE' in step:
-        file_path = step.replace("READ_FILE:", "").strip()
-        return read_file(file_path)
-
-    if 'CALCULATE' in step:
-        expression = step.replace("CALCULATE:", "").strip()
-        return calculate(expression)
-
-    return llm_reason(step, observations)
