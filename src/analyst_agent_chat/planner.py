@@ -4,21 +4,35 @@ import json
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-def create_plan(task: str, system_prompt: str | None = None) -> list[str]:
+def create_plan(task: str, tool_registry, system_prompt: str | None = None) -> list[str]:
     """
     Use an LLM to convert a task into a step-by-step plan.
     """
 
+    tools = tool_registry.get_all_tools()
+    tool_descriptions = "\n\n".join([f"Tool: {tool.name}\nDescription: {tool.description}" for tool in tools])
+
     base_prompt = f"""
+        You can use the following tools:
+
+        {tool_descriptions}
+
         Break task into steps.
 
-        Return a JSON array of objects with this structure:
+        Return a JSON array of objects like this:
+
+        [
         {{
-            "action": "search_web" | "read_file" | "calculate" | "llm_reason",
+            "action": "<tool_name>",
             "input": "..."
         }}
-        Only return valid JSON.
-        No explanation.
+        ]
+
+        Even if there is only one step, still return an array.
+        Do NOT return a single object.
+        
+        Only use the tool names listed above.
+        Return valid JSON.
     """
 
     if system_prompt:
@@ -33,8 +47,26 @@ def create_plan(task: str, system_prompt: str | None = None) -> list[str]:
     )
 
     text = response.choices[0].message.content.strip()
+    # print("###########Text############")
+    # print(text)
+    cleaned = text.strip()
 
-    steps = json.loads(text)
+    if cleaned.startswith("```"):
+        cleaned = cleaned.strip("`")
+        cleaned = cleaned.replace("json", "").strip()
+
+
+    steps = json.loads(cleaned)
+
+    if isinstance(steps, dict):
+        steps = [steps]    
+
+    for step in steps:
+        if "action" not in step or "input" not in step:
+            raise ValueError("Invalid planner step format.")
+
+        if not tool_registry.get(step["action"]):
+            raise ValueError(f"Planner selected unknown tool: {step['action']}")
 
     if not steps:
         raise ValueError("Planner failed to produce steps")

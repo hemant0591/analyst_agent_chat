@@ -16,3 +16,6 @@ class ToolRegistry:
     
     def get_tools_for_mode(self, mode: str) -> List[Tool]:
         return [tool for tool in self._tools if mode in tool.allowed_modes]
+    
+    def get_all_tools(self):
+        return list(self._tools.values())
