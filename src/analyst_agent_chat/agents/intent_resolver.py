@@ -17,8 +17,18 @@ class IntentResolver:
             1. Determine intent:
             - chat → casual conversation or simple explanation
             - lookup → factual query, current events, time-sensitive info
-            - deep_analysis → requires structured reasoning, comparison, pros/cons, recommendations
+            - deep_analysis → structured analytical report such as pros/cons, comparisons, advantages/disadvantages, and formal recommendations.
+            - autonomous → strategic planning, estimation, forecasting, cost modeling, roadmap design, optimization, or open-ended multi-step problem solving.
+                Examples:
+                - "How much money could I save if..."
+                - "Create a 6-month roadmap..."
+                - "Compare X vs Y in depth"
+                - "Design a strategy for..."
+                - "Evaluate long-term impact of..."
 
+            If the user asks for pros/cons or comparison → prefer deep_analysis.
+
+            If the user asks for strategy, roadmap, cost estimation, or time-based planning → prefer autonomous.
 
             If question asks:
             - Who is...
@@ -29,7 +39,6 @@ class IntentResolver:
             - Real-time facts
 
             Then intent MUST be "lookup".
-
 
             2. If the user message depends on earlier context,
             rewrite it into a fully standalone task.

@@ -35,7 +35,15 @@ class AutonomousEngine:
             if not tool:
                 return "Invalid decision: missing 'action'."
             
+            print(f"Step: {curr_steps + 1}")
+            print(f"Chosen action: {action}")
+            
             result = tool.execute(decision.get("input", ""), observations)
+
+            print("Tool result (truncated):", result[:300])
+
+            if observations and decision.get("input") in observations[-1]:
+                return "Repeated action detected. Stopping."
 
             observations.append(result)
 

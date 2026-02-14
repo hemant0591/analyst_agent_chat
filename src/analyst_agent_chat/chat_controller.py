@@ -4,11 +4,12 @@ from analyst_agent_chat.coordinator import Coordinator
 from analyst_agent_chat.agents.intent_resolver import IntentResolver
 from analyst_agent_chat.core.tool import Tool
 from analyst_agent_chat.core.tool_registry import ToolRegistry
+from analyst_agent_chat.core.autonomous_engine import AutonomousEngine
 
 class ChatController:
     def __init__(self):
         self.tool_registry = ToolRegistry()
-        
+
         self.tool_registry.register(
             Tool(
                 name="search_web",
@@ -39,6 +40,7 @@ class ChatController:
         self.coordinator = Coordinator(self.tool_registry)
         self.memory = ChatMemory()
         self.resolver = IntentResolver()
+        self.autonomous_engine = AutonomousEngine(self.tool_registry)
 
     def handle_message(self, user_message: str) -> str:
         intent_messages = self.memory.get_intent_context()
@@ -54,6 +56,8 @@ class ChatController:
             response = memory.final_output
         elif intent == "lookup":
             response = self.simple_lookup(resolved_task)
+        elif intent == "autonomous":
+            response = self.autonomous_engine.run(resolved_task)
         else:
             response = response = llm_reason(resolved_task, self.memory.get_llm_context())
 
