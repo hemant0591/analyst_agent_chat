@@ -3,101 +3,97 @@ from analyst_agent_chat.engines.base_engine import BaseEngine
 
 MAX_RETRY_STEPS = 6
 
+class AutonomousState:
+    def __init__(self, task):
+        self.task = task
+        self.observations = []
+        self.reasoning_trace = []
+        self.steps = 0
+
 class AutonomousEngine(BaseEngine):
     def __init__(self, tool_registry):
         self.tool_registry = tool_registry
 
     def run(self, task:str, context: str | None = None):
-        observations = []
-        curr_steps = 0
+        state = AutonomousState(task)
 
-        while curr_steps < MAX_RETRY_STEPS:
-            # execution logic
-            prompt = self._build_prompt(task, observations)
-
-            reasoning_tool = self.tool_registry.get("llm_reason")
-            decision_raw = reasoning_tool.execute(prompt, [])
-
-            # parse decision
-            try:
-                decision = json.loads(decision_raw)
-            except Exception:
-                return {
-                    "final_output": f"Failed to parse decision JSON:\n{decision_raw}",
-                    "confidance_score": 0,
-                        }
+        while state.steps < MAX_RETRY_STEPS:
+            state.steps += 1
             
-            if "action" not in decision:
+            decision = self._decide_next_action(state)
+
+            if decision["action"] == "finish":
                 return {
-                    "final_output": "Invalid decision: missing 'action'.",
-                    "confidance_score": 0,
+                    "final_output": decision["final_answer"],
+                    "condidence_score": 9
                 }
-            
-            action = decision["action"]
 
-            if action == "finish":
-                return {
-                    "final_output": decision.get("final_answer", "No final answer provided."),
-                    "confidance_score": 9,
-                    }
-            
-            tool = self.tool_registry.get(action)
+            tool = self.tool_registry.get(decision["action"])
 
             if not tool:
                 return {
-                    "final_output": "Invalid decision: missing 'action'.",
-                    "confidance_score": 0,
-                        }
-            
-            # print(f"Step: {curr_steps + 1}")
-            # print(f"Chosen action: {action}")
-            
-            result = tool.execute(decision.get("input", ""), observations)
+                    "final_output": "Unknown tool selected.",
+                    "condidence_score": 3
+                    }
 
-            # print("Tool result (truncated):", result[:300])
+            result = tool.execute(decision["input"], [])
 
-            if observations and decision.get("input") in observations[-1]:
-                return {
-                    "final_output": "Repeated action detected. Stopping.",
-                    "confidance_score": 0,
-                        }
+            state.observations.append(result)
 
-            observations.append(result)
-
-            curr_steps += 1
-
+        # Fallback if max steps hit
         return {
-            "final_output": "Max_steps reached without conclusion",
-            "confidance_score": 0,
-                }
-    
-    def _build_prompt(self, task: str, observations: list[str]) -> str:
+            "final_output": self._summarize_state(state),
+            "condidence_score": 6
+        }
+
+
+    def _decide_next_action(self, state):
         tools = self.tool_registry.get_all_tools()
 
         tool_descriptions = "\n\n".join([f"Tool: {tool.name}\nDescription: {tool.description}" for tool in tools])
 
-        return f"""
-            You are an autonomous AI agent.
+        prompt = f"""
+        You are an autonomous reasoning engine.
 
-            Task:
-            {task}
+        Task:
+        {state.task}
 
-            Observations so far:
-            {observations if observations else "None"}
+        Observations so far:
+        {state.observations}
 
-            Available tools:
-            {tool_descriptions}
+        Available tools:
+        {tool_descriptions}
 
-            Choose ONE action.
+        Decide next step.
 
-            Return JSON in this format:
+        You may:
+        - Use a tool
+        - Or finish and provide final answer
 
-            {{
-            "action": "<tool_name>" OR "finish",
+        Return JSON:
+
+        {{
+            "action": "<tool_name or finish>",
             "input": "...",
-            "final_answer": "..." (only if finishing)
-            }}
+            "final_answer": "..." (only if finish)
+        }}
+        """
 
-            Do not explain.
-            Return valid JSON only.
-            """
+        reasoning_tool = self.tool_registry.get("llm_reason")
+        response = reasoning_tool.execute(prompt, [])
+        
+        return json.loads(response)
+
+    def _summarize_state(self, state):
+        prompt = f"""
+        Based on the task and observations, provide the best possible answer.
+
+        Task:
+        {state.task}
+
+        Observations:
+        {state.observations}
+        """
+        reasoning_tool = self.tool_registry.get("llm_reason")
+        response = reasoning_tool.execute(prompt, []) 
+        return response

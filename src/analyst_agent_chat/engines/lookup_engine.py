@@ -9,18 +9,23 @@ class LookupEngine(BaseEngine):
         search_results = search_tool.execute(task, [])
 
         prompt = f"""
-            You must answer using ONLY the search results provided.
+            You are a factual QA system.
 
-            If the search results do not contain reliable, recent information,
-            say that verification is inconclusive.
+            Answer the question clearly and directly.
 
-            Search results:
-            {search_results}
+            If search results contain a definitive answer, state it confidently.
+
+            If multiple sources agree, assume the information is correct.
 
             Question:
             {task}
 
-            Return a short factual answer.
+            Search Results:
+            {search_results}
+
+            Provide a short direct answer in one sentence.
+            Do not say "verification inconclusive" unless absolutely no relevant information exists.
+
             Do NOT rely on prior knowledge.
             """
 
@@ -29,5 +34,5 @@ class LookupEngine(BaseEngine):
 
         return {
             "final_output": result,
-            "confidance_score": 10
+            "confidence_score": 10
         }

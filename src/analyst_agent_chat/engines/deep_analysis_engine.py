@@ -47,8 +47,8 @@ class DeepAnalysisEngine(BaseEngine):
 
             last_review = memory.review_notes[-1]
 
-            if isinstance(last_review, dict) and "confidance_score" in last_review:
-                score = int(last_review["confidance_score"])
+            if isinstance(last_review, dict) and "confidence_score" in last_review:
+                score = int(last_review["confidence_score"])
             else:
                 score = 10
 
@@ -93,8 +93,8 @@ class DeepAnalysisEngine(BaseEngine):
 
                 last_review = memory.review_notes[-1]
 
-                if isinstance(last_review, dict) and "confidance_score" in last_review:
-                    score = int(last_review["confidance_score"])
+                if isinstance(last_review, dict) and "confidence_score" in last_review:
+                    score = int(last_review["confidence_score"])
                 else:
                     score = 10
 

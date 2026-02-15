@@ -9,5 +9,5 @@ class ChatEngine(BaseEngine):
         result = reasoning_tool.execute(task, context)
         return {
             "final_output": result,
-            "confidance_score": 10
+            "confidence_score": 10
         }
