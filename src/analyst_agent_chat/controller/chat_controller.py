@@ -1,14 +1,15 @@
-from analyst_agent_chat.chat_memory import ChatMemory
-from analyst_agent_chat.tools import llm_reason, search_web, read_file
-from analyst_agent_chat.coordinator import Coordinator
-from analyst_agent_chat.agents.intent_resolver import IntentResolver
+from analyst_agent_chat.memory.conversation_memory import ChatMemory
+from analyst_agent_chat.core.tools import llm_reason, search_web, read_file
+from analyst_agent_chat.routing.intent_resolver import IntentResolver
 from analyst_agent_chat.core.tool import Tool
-from analyst_agent_chat.core.tool_registry import ToolRegistry
-from analyst_agent_chat.core.autonomous_engine import AutonomousEngine
+from analyst_agent_chat.core.registry import ToolRegistry
+from analyst_agent_chat.engines.autonomous_engine import AutonomousEngine
+from analyst_agent_chat.core.engine_registry import EngineRegistry
 
 class ChatController:
     def __init__(self):
         self.tool_registry = ToolRegistry()
+        self.engine_registry = EngineRegistry(self.tool_registry)
 
         self.tool_registry.register(
             Tool(
@@ -37,7 +38,6 @@ class ChatController:
             )
         )
 
-        self.coordinator = Coordinator(self.tool_registry)
         self.memory = ChatMemory()
         self.resolver = IntentResolver()
         self.autonomous_engine = AutonomousEngine(self.tool_registry)
@@ -49,17 +49,11 @@ class ChatController:
         intent = resolution["intent"]
         resolved_task = resolution["resolved_task"]
 
+        execution_context = self.memory.get_context_for(intent)
         #print("Intent: ", intent) # comment out later
-
-        if intent == "deep_analysis":
-            memory = self.coordinator.run(resolved_task)
-            response = memory.final_output
-        elif intent == "lookup":
-            response = self.simple_lookup(resolved_task)
-        elif intent == "autonomous":
-            response = self.autonomous_engine.run(resolved_task)
-        else:
-            response = response = llm_reason(resolved_task, self.memory.get_llm_context())
+        engine = self.engine_registry.get(intent)
+        result = engine.run(resolved_task, execution_context)
+        response = result["final_output"]
 
         self.memory.add_user(user_message)
         self.memory.add_assistant(response)

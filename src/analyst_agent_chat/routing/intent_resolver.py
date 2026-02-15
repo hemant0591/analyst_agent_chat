@@ -1,5 +1,5 @@
 import json
-from analyst_agent_chat.tools import llm_reason
+from analyst_agent_chat.core.tools import llm_reason
 
 class IntentResolver:
     def resolve(self, user_message: str, conversation_history: list[dict]) -> dict:

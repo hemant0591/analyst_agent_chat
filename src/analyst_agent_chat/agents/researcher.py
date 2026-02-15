@@ -1,5 +1,5 @@
-from analyst_agent_chat.planner import create_plan
-from analyst_agent_chat.memory import AgentMemory
+from analyst_agent_chat.core.planner import create_plan
+from analyst_agent_chat.memory.agent_memory import AgentMemory
 
 class Researcher:
     def __init__(self, tool_registry):
@@ -16,13 +16,11 @@ class Researcher:
         memory = AgentMemory()
         plan = create_plan(task, self.tool_registry, system_prompt=self.role_prompt)
 
-        observations = []
-
         for step in plan:
             if not self.tool_registry.get(step["action"]):
                 raise ValueError("Planner selected unknown tool")
             tool = self.tool_registry.get(step["action"])
-            result = tool.execute(step["input"], observations)
+            result = tool.execute(step["input"], [])
             memory.add_research(result)
 
         return memory

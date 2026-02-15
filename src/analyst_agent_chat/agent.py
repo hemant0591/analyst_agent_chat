@@ -1,4 +1,4 @@
-from analyst_agent_chat.chat_controller import ChatController
+from analyst_agent_chat.controller.chat_controller import ChatController
 
 def main():
     chat = ChatController()

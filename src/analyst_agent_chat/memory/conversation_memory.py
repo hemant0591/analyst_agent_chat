@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional
-from analyst_agent_chat.tools import llm_reason
+from analyst_agent_chat.core.tools import llm_reason
 
 MAX_RECENT_MESSAGES = 8
 
@@ -50,6 +50,21 @@ class ChatMemory:
             name = text.split("is")[-1].strip()
             self.user_profile["name"] = name
 
+    def get_context_for(self, engine_type: str):
+        """
+        Return execution context tailored to engine type.
+        """
+        if engine_type == "chat":
+            return self._get_chat_context()
+        if engine_type == "lookup":
+            return self._get_lookup_context()
+        if engine_type == "deep_analysis":
+            return self._get_analysis_context()
+        if engine_type == "autonomous":
+            return self._get_autonomous_context()
+        
+        return self.get_llm_context()
+
 
     def get_llm_context(self):
         """
@@ -64,6 +79,7 @@ class ChatMemory:
 
         return messages
     
+    # this is now redundant
     def get_intent_context(self):
         """
         Get context for intent resolver
@@ -76,3 +92,37 @@ class ChatMemory:
         intent_messages.extend(self.recent_messages[-2:])
 
         return intent_messages
+    
+    def _get_chat_context(self):
+        context = []
+        
+        if self.conversation_summary:
+            context.append({"role":"system", "content": f"Conversation summary so far:\n{self.conversation_summary}"})
+        
+        context.extend(self.recent_messages[-4:])
+
+        return context
+    
+    def _get_lookup_context(self):
+        context = []
+        
+        if self.conversation_summary:
+            context.append({"role":"system", "content": f"Conversation summary so far:\n{self.conversation_summary}"})
+        
+        context.extend(self.recent_messages[-2:])
+
+        return context
+
+    def _get_analysis_context(self):
+    # Usually resolved_task is standalone (enhance later with knowledge base)
+        return []
+    
+    def _get_autonomous_context(self):
+        context = []
+        
+        if self.conversation_summary:
+            context.append({"role":"system", "content": f"Conversation summary so far:\n{self.conversation_summary}"})
+        
+        context.extend(self.recent_messages[-6:])
+
+        return context 

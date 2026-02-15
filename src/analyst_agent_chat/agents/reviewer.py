@@ -1,5 +1,5 @@
-from analyst_agent_chat.memory import AgentMemory
-from analyst_agent_chat.tools import llm_reason
+from analyst_agent_chat.memory.agent_memory import AgentMemory
+from analyst_agent_chat.core.tools import llm_reason
 import json
 
 class Reviewer:

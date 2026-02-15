@@ -1,15 +1,17 @@
 import json
+from analyst_agent_chat.engines.base_engine import BaseEngine
 
-class AutonomousEngine:
-    def __init__(self, tool_registry, max_retry_steps=6):
+MAX_RETRY_STEPS = 6
+
+class AutonomousEngine(BaseEngine):
+    def __init__(self, tool_registry):
         self.tool_registry = tool_registry
-        self.max_retry_steps = max_retry_steps
 
-    def run(self, task:str):
+    def run(self, task:str, context: str | None = None):
         observations = []
         curr_steps = 0
 
-        while curr_steps < self.max_retry_steps:
+        while curr_steps < MAX_RETRY_STEPS:
             # execution logic
             prompt = self._build_prompt(task, observations)
 
@@ -20,36 +22,54 @@ class AutonomousEngine:
             try:
                 decision = json.loads(decision_raw)
             except Exception:
-                return f"Failed to parse decision JSON:\n{decision_raw}"
+                return {
+                    "final_output": f"Failed to parse decision JSON:\n{decision_raw}",
+                    "confidance_score": 0,
+                        }
             
             if "action" not in decision:
-                return "Invalid decision: missing 'action'."
+                return {
+                    "final_output": "Invalid decision: missing 'action'.",
+                    "confidance_score": 0,
+                }
             
             action = decision["action"]
 
             if action == "finish":
-                return decision.get("final_answer", "No final answer provided.")
+                return {
+                    "final_output": decision.get("final_answer", "No final answer provided."),
+                    "confidance_score": 9,
+                    }
             
             tool = self.tool_registry.get(action)
 
             if not tool:
-                return "Invalid decision: missing 'action'."
+                return {
+                    "final_output": "Invalid decision: missing 'action'.",
+                    "confidance_score": 0,
+                        }
             
-            print(f"Step: {curr_steps + 1}")
-            print(f"Chosen action: {action}")
+            # print(f"Step: {curr_steps + 1}")
+            # print(f"Chosen action: {action}")
             
             result = tool.execute(decision.get("input", ""), observations)
 
-            print("Tool result (truncated):", result[:300])
+            # print("Tool result (truncated):", result[:300])
 
             if observations and decision.get("input") in observations[-1]:
-                return "Repeated action detected. Stopping."
+                return {
+                    "final_output": "Repeated action detected. Stopping.",
+                    "confidance_score": 0,
+                        }
 
             observations.append(result)
 
             curr_steps += 1
 
-        return "Max_steps reached without conclusion"
+        return {
+            "final_output": "Max_steps reached without conclusion",
+            "confidance_score": 0,
+                }
     
     def _build_prompt(self, task: str, observations: list[str]) -> str:
         tools = self.tool_registry.get_all_tools()

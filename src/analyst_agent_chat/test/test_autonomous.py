@@ -1,7 +1,7 @@
-from analyst_agent_chat.core.autonomous_engine import AutonomousEngine
-from analyst_agent_chat.core.tool_registry import ToolRegistry
+from analyst_agent_chat.engines.autonomous_engine import AutonomousEngine
+from analyst_agent_chat.core.registry import ToolRegistry
 from analyst_agent_chat.core.tool import Tool
-from analyst_agent_chat.tools import search_web, read_file, calculate, llm_reason
+from analyst_agent_chat.core.tools import search_web, read_file, calculate, llm_reason
 
 tool_registry = ToolRegistry()
 
