@@ -8,11 +8,12 @@ class AutonomousState:
         self.task = task
         self.observations = []
         self.reasoning_trace = []
-        self.steps = 0
+        self.steps = 0   
 
 class AutonomousEngine(BaseEngine):
     def __init__(self, tool_registry):
         self.tool_registry = tool_registry
+        self.is_cacheable = True
 
     def run(self, task:str, context: str | None = None):
         state = AutonomousState(task)

@@ -3,6 +3,7 @@ from analyst_agent_chat.engines.base_engine import BaseEngine
 class LookupEngine(BaseEngine):
     def __init__(self, tool_registry):
         self.tool_registry = tool_registry
+        self.is_cacheable = False
 
     def run(self, task: str, context: str | None = None):
         search_tool = self.tool_registry.get("search_web")

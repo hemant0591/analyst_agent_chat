@@ -5,7 +5,7 @@ from analyst_agent_chat.core.tool import Tool
 from analyst_agent_chat.core.registry import ToolRegistry
 from analyst_agent_chat.engines.autonomous_engine import AutonomousEngine
 from analyst_agent_chat.core.engine_registry import EngineRegistry
-from analyst_agent_chat.memory.knowlege_base import KnowledgeBase
+from analyst_agent_chat.memory.knowledge_base import KnowledgeBase
 
 class ChatController:
     def __init__(self):
@@ -51,14 +51,21 @@ class ChatController:
         intent = resolution["intent"]
         resolved_task = resolution["resolved_task"]
 
-        kb_matches = self.knowledge_base.search(resolved_task)
-        if kb_matches:
-            return kb_matches[-1]["result"]
-
         execution_context = self.memory.get_context_for(intent)
         #print("Intent: ", intent) # comment out later
         engine = self.engine_registry.get(intent)
+        if engine.is_cacheable:
+            kb_match = self.knowledge_base.search(resolved_task)
+            if kb_match:
+                #print("Getting cached result")
+                return kb_match["result"]
         result = engine.run(resolved_task, execution_context)
+        if engine.is_cacheable:
+            self.knowledge_base.save_entry(
+                resolved_task,
+                result["final_output"],
+                metadata= {"intent": intent}
+            )
         response = result["final_output"]
 
         self.knowledge_base.save_entry(

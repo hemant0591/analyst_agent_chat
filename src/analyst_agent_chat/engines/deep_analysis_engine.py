@@ -11,6 +11,7 @@ CONFIDENCE_THRESHOLD = 8
 class DeepAnalysisEngine(BaseEngine):
     def __init__(self, tool_registry):
         self.tool_registry = tool_registry
+        self.is_cacheable = True
 
     def run(self, task: str, context: str | None = None):
         retries = 0
