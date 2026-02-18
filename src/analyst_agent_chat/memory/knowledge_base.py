@@ -1,50 +1,91 @@
 import json
 import os
+import numpy as np
 from datetime import datetime, timezone
-from analyst_agent_chat.core.llm import get_embeddings, cosine_similarity
+from analyst_agent_chat.core.llm import get_embeddings
+
+META_PATH = "knowledge_meta.json"
+VECTOR_PATH = "knowledge_vectors.npy"
 
 class KnowledgeBase:
-    def __init__(self, path="knowledge.json"):
-        self.path = path
-        self.data = self._load()
+    def __init__(self):
+        self.entries = []
+        self.embeddings = None
+        self._load()        
 
     def _load(self):
-        if not os.path.exists(self.path):
-            return []
+        if os.path.exists(META_PATH):
+            with open(META_PATH, "r") as f:
+                self.entries = json.load(f)
+
+        if os.path.exists(VECTOR_PATH):
+            self.embeddings = np.load(VECTOR_PATH)
+        else:
+            self.embeddings = None
         
-        with open(self.path, "r") as f:
-            return json.load(f)
+    def save_entry(self, task, result, intent, confidence):
+        if confidence < 8:
+            return
         
-    def save_entry(self, task, result, metadata=None):
-        embedding = get_embeddings(task)
+        embedding = np.array(get_embeddings(task), dtype=np.float32)
+        embedding = self._normalize(embedding)
+
         entry = {
             "task": task,
             "result": result,
-            "embedding": embedding,
-            "metadata": metadata or {},
+            "intent": intent,
+            "confidence": confidence,
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
-        self.data.append(entry)
+        self.entries.append(entry)
+
+        if not self.embeddings:
+            self.embeddings = embedding.reshape(1,-1)
+        else:
+            self.embeddings = np.vstack([self.embeddings, embedding])
+
         self._persist()
 
     def _persist(self):
-        with open(self.path, "w") as f:
-            json.dump(self.data, f, indent=2)
+        with open(META_PATH, "w") as f:
+            json.dump(self.entries, f, indent=2)
 
-    def search(self, query, threshold=0.85):
-        query_embedding = get_embeddings(query)
+        if self.embeddings is not None:
+            np.save(VECTOR_PATH, self.embeddings)
 
-        best_match = None
-        best_score = 0
+    def _normalize(self, vec):
+        norm = np.linalg.norm(vec)
+        if norm == 0:
+            return vec
+        return vec / norm
 
-        for entry in self.data:
-            score = cosine_similarity(entry["embedding"], query_embedding)
+    def search(self, query, intent, threshold=0.85):
+        if self.embeddings is None or len(self.entries) == 0:
+            return None
+        
+        query_embedding = np.array(get_embeddings(query), dtype=np.float32)
+        query_embedding = self._normalize(query_embedding)
+
+        similarities = self.embeddings @ query_embedding
+
+        valid_indices = [i for i, entry in enumerate(self.entries) if entry["intent"] == intent]
+
+        if not valid_indices:
+            return None
+        
+        best_idx = None
+        best_score = -1
+
+        for i in valid_indices:
+            score = similarities[i]
             if score > best_score:
-                best_match = entry
                 best_score = score
+                best_idx = i
+
+        print(f"[KB] Best similarity: {best_score:.3f}")
 
         if best_score >= threshold:
-            return best_match
+            return self.entries[best_idx]["result"]
 
         return None

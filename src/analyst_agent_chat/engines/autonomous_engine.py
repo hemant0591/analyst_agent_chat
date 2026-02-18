@@ -26,7 +26,7 @@ class AutonomousEngine(BaseEngine):
             if decision["action"] == "finish":
                 return {
                     "final_output": decision["final_answer"],
-                    "condidence_score": 9
+                    "confidence_score": 9
                 }
 
             tool = self.tool_registry.get(decision["action"])
@@ -34,7 +34,7 @@ class AutonomousEngine(BaseEngine):
             if not tool:
                 return {
                     "final_output": "Unknown tool selected.",
-                    "condidence_score": 3
+                    "confidence_score": 3
                     }
 
             result = tool.execute(decision["input"], [])
@@ -44,7 +44,7 @@ class AutonomousEngine(BaseEngine):
         # Fallback if max steps hit
         return {
             "final_output": self._summarize_state(state),
-            "condidence_score": 6
+            "confidence_score": 6
         }
 
 

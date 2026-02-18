@@ -55,55 +55,23 @@ class ChatController:
         #print("Intent: ", intent) # comment out later
         engine = self.engine_registry.get(intent)
         if engine.is_cacheable:
-            kb_match = self.knowledge_base.search(resolved_task)
-            if kb_match:
+            cached = self.knowledge_base.search(resolved_task, intent)
+            if cached:
                 #print("Getting cached result")
-                return kb_match["result"]
+                return cached
         result = engine.run(resolved_task, execution_context)
         if engine.is_cacheable:
             self.knowledge_base.save_entry(
-                resolved_task,
-                result["final_output"],
-                metadata= {"intent": intent}
+                task= resolved_task,
+                result= result["final_output"],
+                intent=intent,
+                confidence=result["confidence_score"]
             )
         response = result["final_output"]
-
-        self.knowledge_base.save_entry(
-            resolved_task,
-            response,
-            metadata= {"intent": intent}
-        )
 
         self.memory.add_user(user_message)
         self.memory.add_assistant(response)
 
         return response
-    
-    # def simple_lookup(self, task: str) -> str:
-    #     """
-    #     Lightweight factual lookup without full pipeline.
-    #     """
-    #     search_tool = self.tool_registry.get("search_web")
-    #     search_results = search_tool.execute(task)
-
-    #     #print("Search results: ", search_results) # comment out later
-
-    #     prompt = f"""
-    #         You must answer using ONLY the search results provided.
-
-    #         If the search results do not contain reliable, recent information,
-    #         say that verification is inconclusive.
-
-    #         Search results:
-    #         {search_results}
-
-    #         Question:
-    #         {task}
-
-    #         Return a short factual answer.
-    #         Do NOT rely on prior knowledge.
-    #         """
-
-    #     return llm_reason(prompt, [])
 
 
