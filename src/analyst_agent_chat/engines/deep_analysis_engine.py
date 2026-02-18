@@ -9,11 +9,24 @@ MAX_RETRIES = 2
 CONFIDENCE_THRESHOLD = 8
 
 class DeepAnalysisEngine(BaseEngine):
-    def __init__(self, tool_registry):
+    def __init__(self, tool_registry, reflection_memory):
         self.tool_registry = tool_registry
+        self.reflection_memory = reflection_memory
         self.is_cacheable = True
 
     def run(self, task: str, context: str | None = None):
+        past_reflections = self.reflection_memory.search(task=task, intent="deep_analysis")
+
+        reflection_signal = ""
+
+        if past_reflections:
+            reflection_signal = f"""
+            Previous similar task reflections (weaknesses and suggested improvements)
+            {past_reflections}
+
+            Avoid repeating these mistakes.
+            """
+
         retries = 0
         original_task = task
 
@@ -35,12 +48,15 @@ class DeepAnalysisEngine(BaseEngine):
                         {original_task}
                     """
             else:
-                task = original_task
+                task = original_task  
 
             researcher = Researcher(self.tool_registry)
             analyst = Analyst(self.tool_registry)
             reviewer = Reviewer(self.tool_registry)
             presenter = Presenter(self.tool_registry)
+
+            if reflection_signal:
+                task = task + "\n\n" + reflection_signal
 
             memory = researcher.run(task)
             memory = analyst.run(memory)
@@ -54,6 +70,7 @@ class DeepAnalysisEngine(BaseEngine):
                 score = 10
 
             if score < CONFIDENCE_THRESHOLD:
+                self.reflection_memory.save_reflections(task=task, intent="deep_analysis", review_dict=last_review)
                 analysis_object = memory.analysis_notes[-1]
 
                 if isinstance(analysis_object, dict) and "error" in analysis_object:
@@ -63,7 +80,13 @@ class DeepAnalysisEngine(BaseEngine):
                 refinement_prompt = f"""
                     The reviewer provided this critique:
 
-                    {json.dumps(last_review, indent=2)}
+                    weaknesses: 
+                    {last_review["weaknesses"]}
+
+                    suggested improvements:
+                    {last_review["suggested_improvements"]}
+
+                    Adress these explicitely.
 
                     Here is the previous analysis:
 

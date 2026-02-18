@@ -4,12 +4,12 @@ from analyst_agent_chat.engines.deep_analysis_engine import DeepAnalysisEngine
 from analyst_agent_chat.engines.autonomous_engine import AutonomousEngine
 
 class EngineRegistry:
-    def __init__(self, tool_registry):
+    def __init__(self, tool_registry, reflection_memory):
         self.engine = {
             "chat": ChatEngine(tool_registry),
             "lookup": LookupEngine(tool_registry),
-            "deep_analysis": DeepAnalysisEngine(tool_registry),
-            "autonomous": AutonomousEngine(tool_registry)
+            "deep_analysis": DeepAnalysisEngine(tool_registry, reflection_memory),
+            "autonomous": AutonomousEngine(tool_registry, reflection_memory)
         }
 
     def get(self, intent: str):

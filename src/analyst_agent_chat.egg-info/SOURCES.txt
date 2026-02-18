@@ -27,5 +27,6 @@ src/analyst_agent_chat/engines/lookup_engine.py
 src/analyst_agent_chat/memory/agent_memory.py
 src/analyst_agent_chat/memory/conversation_memory.py
 src/analyst_agent_chat/memory/knowledge_base.py
+src/analyst_agent_chat/memory/relection_memory.py
 src/analyst_agent_chat/routing/intent_resolver.py
 src/analyst_agent_chat/test/test_autonomous.py

@@ -6,11 +6,13 @@ from analyst_agent_chat.core.registry import ToolRegistry
 from analyst_agent_chat.engines.autonomous_engine import AutonomousEngine
 from analyst_agent_chat.core.engine_registry import EngineRegistry
 from analyst_agent_chat.memory.knowledge_base import KnowledgeBase
+from analyst_agent_chat.memory.relection_memory import ReflectionMemory
 
 class ChatController:
     def __init__(self):
         self.tool_registry = ToolRegistry()
-        self.engine_registry = EngineRegistry(self.tool_registry)
+        self.reflection_memory = ReflectionMemory()
+        self.engine_registry = EngineRegistry(self.tool_registry, self.reflection_memory)
         self.knowledge_base = KnowledgeBase()
 
         self.tool_registry.register(
@@ -42,7 +44,7 @@ class ChatController:
 
         self.memory = ChatMemory()
         self.resolver = IntentResolver()
-        self.autonomous_engine = AutonomousEngine(self.tool_registry)
+        self.autonomous_engine = AutonomousEngine(self.tool_registry, self.reflection_memory)
 
     def handle_message(self, user_message: str) -> str:
         intent_messages = self.memory.get_intent_context()
