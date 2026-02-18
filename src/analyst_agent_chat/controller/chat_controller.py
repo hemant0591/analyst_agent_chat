@@ -5,11 +5,13 @@ from analyst_agent_chat.core.tool import Tool
 from analyst_agent_chat.core.registry import ToolRegistry
 from analyst_agent_chat.engines.autonomous_engine import AutonomousEngine
 from analyst_agent_chat.core.engine_registry import EngineRegistry
+from analyst_agent_chat.memory.knowlege_base import KnowledgeBase
 
 class ChatController:
     def __init__(self):
         self.tool_registry = ToolRegistry()
         self.engine_registry = EngineRegistry(self.tool_registry)
+        self.knowledge_base = KnowledgeBase()
 
         self.tool_registry.register(
             Tool(
@@ -49,42 +51,52 @@ class ChatController:
         intent = resolution["intent"]
         resolved_task = resolution["resolved_task"]
 
+        kb_matches = self.knowledge_base.search(resolved_task)
+        if kb_matches:
+            return kb_matches[-1]["result"]
+
         execution_context = self.memory.get_context_for(intent)
         #print("Intent: ", intent) # comment out later
         engine = self.engine_registry.get(intent)
         result = engine.run(resolved_task, execution_context)
         response = result["final_output"]
 
+        self.knowledge_base.save_entry(
+            resolved_task,
+            response,
+            metadata= {"intent": intent}
+        )
+
         self.memory.add_user(user_message)
         self.memory.add_assistant(response)
 
         return response
     
-    def simple_lookup(self, task: str) -> str:
-        """
-        Lightweight factual lookup without full pipeline.
-        """
-        search_tool = self.tool_registry.get("search_web")
-        search_results = search_tool.execute(task)
+    # def simple_lookup(self, task: str) -> str:
+    #     """
+    #     Lightweight factual lookup without full pipeline.
+    #     """
+    #     search_tool = self.tool_registry.get("search_web")
+    #     search_results = search_tool.execute(task)
 
-        #print("Search results: ", search_results) # comment out later
+    #     #print("Search results: ", search_results) # comment out later
 
-        prompt = f"""
-            You must answer using ONLY the search results provided.
+    #     prompt = f"""
+    #         You must answer using ONLY the search results provided.
 
-            If the search results do not contain reliable, recent information,
-            say that verification is inconclusive.
+    #         If the search results do not contain reliable, recent information,
+    #         say that verification is inconclusive.
 
-            Search results:
-            {search_results}
+    #         Search results:
+    #         {search_results}
 
-            Question:
-            {task}
+    #         Question:
+    #         {task}
 
-            Return a short factual answer.
-            Do NOT rely on prior knowledge.
-            """
+    #         Return a short factual answer.
+    #         Do NOT rely on prior knowledge.
+    #         """
 
-        return llm_reason(prompt, [])
+    #     return llm_reason(prompt, [])
 
 
