@@ -105,7 +105,7 @@ class KnowledgeBase:
                 best_score = score
                 best_id = entry_id
 
-        print(f"[KB] Best similarity: {best_score:.3f}")
+        #print(f"[KB] Best similarity: {best_score:.3f}")
 
         if best_score >= threshold and best_id:
             return self.entries[best_id]["result"]

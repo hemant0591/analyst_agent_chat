@@ -7,6 +7,7 @@ from analyst_agent_chat.engines.autonomous_engine import AutonomousEngine
 from analyst_agent_chat.core.engine_registry import EngineRegistry
 from analyst_agent_chat.memory.knowledge_base import KnowledgeBase
 from analyst_agent_chat.memory.relection_memory import ReflectionMemory
+from analyst_agent_chat.memory.tool_cache import ToolCache
 
 class ChatController:
     def __init__(self):
@@ -14,6 +15,7 @@ class ChatController:
         self.reflection_memory = ReflectionMemory()
         self.engine_registry = EngineRegistry(self.tool_registry, self.reflection_memory)
         self.knowledge_base = KnowledgeBase()
+        self.tool_cache = ToolCache()
 
         self.tool_registry.register(
             Tool(
@@ -21,6 +23,8 @@ class ChatController:
                 description="Search the internet for current information.",
                 function=search_web,
                 allowed_modes=["lookup", "autonomous", "deep_analysis"],
+                cache=self.tool_cache,
+                is_cacheable=True
             )
         )
 
@@ -30,6 +34,8 @@ class ChatController:
                 description="Read a file from disk.",
                 function=read_file,
                 allowed_modes=["autonomous", "deep_analysis"],
+                cache=self.tool_cache,
+                is_cacheable=False
             )
         )
 
@@ -39,6 +45,8 @@ class ChatController:
                 description="Use the LLM for reasoning.",
                 function=llm_reason,
                 allowed_modes=["chat", "lookup", "autonomous", "deep_analysis"],
+                cache=self.tool_cache,
+                is_cacheable=True
             )
         )
 
