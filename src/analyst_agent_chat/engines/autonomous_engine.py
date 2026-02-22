@@ -1,8 +1,11 @@
 import json
 from analyst_agent_chat.engines.base_engine import BaseEngine
+from analyst_agent_chat.core.logger import get_logger
 
 MAX_RETRY_STEPS = 6
 CONFIDENCE_THRESHOLD = 8
+
+logger = get_logger("autonomous_engine")
 
 class AutonomousState:
     def __init__(self, task):
@@ -75,6 +78,16 @@ class AutonomousEngine(BaseEngine):
 
             result = tool.execute(decision["input"], state.observations)
             state.observations.append(result)
+
+            logger.info(
+                "Tool executed",
+                extra={
+                    "extra_data": {
+                        "tool": decision["action"],
+                        "input": decision["input"],
+                    }
+                },
+            )
 
         # Fallback if max steps hit
         return {

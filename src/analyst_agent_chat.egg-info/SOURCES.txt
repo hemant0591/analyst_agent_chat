@@ -2,6 +2,7 @@ README.md
 pyproject.toml
 src/analyst_agent_chat/__init__.py
 src/analyst_agent_chat/agent.py
+src/analyst_agent_chat/api.py
 src/analyst_agent_chat.egg-info/PKG-INFO
 src/analyst_agent_chat.egg-info/SOURCES.txt
 src/analyst_agent_chat.egg-info/dependency_links.txt
@@ -15,6 +16,7 @@ src/analyst_agent_chat/agents/reviewer.py
 src/analyst_agent_chat/controller/chat_controller.py
 src/analyst_agent_chat/core/engine_registry.py
 src/analyst_agent_chat/core/llm.py
+src/analyst_agent_chat/core/logger.py
 src/analyst_agent_chat/core/planner.py
 src/analyst_agent_chat/core/registry.py
 src/analyst_agent_chat/core/tool.py
