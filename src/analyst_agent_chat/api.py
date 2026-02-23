@@ -26,3 +26,7 @@ def chat_entrypoint(request: ChatRequest):
     
     except Exception as e:
         return ChatResponse(f"Error: {str(e)}")
+    
+@app.get("/health")
+def health():
+    return {"status": "ok"}

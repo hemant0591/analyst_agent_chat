@@ -84,42 +84,56 @@ class ChatController:
         #print("Intent: ", intent) # comment out later
         engine = self.engine_registry.get(intent)
 
-        if engine.is_cacheable:
-            cached = self.knowledge_base.search(resolved_task, intent)
-            if cached:
-                #print("Getting cached result")
-                return cached
+        try:
+            if engine.is_cacheable:
+                cached = self.knowledge_base.search(resolved_task, intent)
+                if cached:
+                    #print("Getting cached result")
+                    return cached
             
-        result = engine.run(resolved_task, execution_context)
+            
+            result = engine.run(resolved_task, execution_context)
 
-        latency = int((time.time() - start_time) * 1000)
+            if engine.is_cacheable:
+                self.knowledge_base.save_entry(
+                    task= resolved_task,
+                    result= result["final_output"],
+                    intent=intent,
+                    confidence=result["confidence_score"]
+                )
 
-        logger.info(
-        "Request completed",
-        extra={
-            "extra_data": {
-                "request_id": request_id,
-                "intent": intent,
-                "engine": engine.__class__.__name__,
-                "confidence_score": result.get("confidence_score"),
-                "latency_ms": latency,
-                }
-            },
-        )
+            response = result["final_output"]
 
-        if engine.is_cacheable:
-            self.knowledge_base.save_entry(
-                task= resolved_task,
-                result= result["final_output"],
-                intent=intent,
-                confidence=result["confidence_score"]
+            self.memory.add_user(user_message)
+            self.memory.add_assistant(response)
+
+            return response
+        
+        except Exception as e:
+            logger.error(
+                "Request failed",
+                extra={
+                    "extra_data": {
+                        "request_id": request_id,
+                        "intent": intent,
+                        "error": str(e)
+                    }
+                },
             )
+            raise
 
-        response = result["final_output"]
+        finally:
+            latency = int((time.time() - start_time) * 1000)
 
-        self.memory.add_user(user_message)
-        self.memory.add_assistant(response)
-
-        return response
-
-
+            logger.info(
+                "Request completed",
+                extra={
+                    "extra_data": {
+                        "request_id": request_id,
+                        "intent": intent,
+                        "engine": engine.__class__.__name__,
+                        "latency_ms": latency,
+                    }
+                },
+            )
+        
