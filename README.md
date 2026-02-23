@@ -1,4 +1,4 @@
-<img width="589" height="360" alt="image" src="https://github.com/user-attachments/assets/ce375073-01ec-416d-a053-7e497f0e64a7" /><img width="589" height="360" alt="image" src="https://github.com/user-attachments/assets/2259f448-d04d-40ce-aea1-7846e72da0ee" /><img width="589" height="360" alt="image" src="https://github.com/user-attachments/assets/038c20c1-684a-45eb-8c39-d3d23d1c52e5" /># Production-Grade Multi-Engine Agentic AI System
+# Production-Grade Multi-Engine Agentic AI System
 
 A modular, production-ready AI system built with FastAPI and Docker that demonstrates agentic workflows, autonomous tool usage, semantic caching, reflection-based self-improvement, and cloud deployment on AWS.
 
